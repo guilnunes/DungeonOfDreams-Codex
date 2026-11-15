@@ -7,7 +7,11 @@ export type Entry = {
   kind: string;
   status: string;
   body: string;
-  revision: number;
+  revision: string | number;
+  canEdit?: boolean;
+  canHistory?: boolean;
+  format?: string;
+  provider?: string;
   source?: string;
   provenance?: string;
   updated?: string;

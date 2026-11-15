@@ -1,0 +1,22 @@
+[
+  {
+    "id": "design-source",
+    "provider": "notion",
+    "pageId": "REPLACE_IN_SERVER_CONFIG",
+    "category": "Gameplay",
+    "kind": "Document",
+    "format": "text",
+    "writable": true
+  },
+  {
+    "id": "implementation-source",
+    "provider": "github",
+    "repository": "REPLACE_OWNER/REPLACE_REPOSITORY",
+    "branch": "main",
+    "path": "REPLACE_PATH.md",
+    "category": "Implementation",
+    "kind": "Document",
+    "format": "text",
+    "writable": true
+  }
+]

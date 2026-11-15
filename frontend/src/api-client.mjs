@@ -24,10 +24,9 @@ export function createApiClient(rawOrigin, fetcher = fetch) {
       let result;
       try { result = await response.json(); } catch { throw new Error('The backend returned an invalid response.'); }
       if (!response.ok) {
-        if (response.status === 401) throw new Error('Sign in to access your project.');
-        if (response.status === 403) throw new Error('You do not have permission for this operation.');
-        if (response.status === 409) throw new Error('The source changed. Refresh and review before saving.');
-        throw new Error('The protected source is unavailable. Please try again.');
+        const messages={401:'Sign in to access your project.',403:'You do not have permission for this operation.',409:'The source changed. Refresh and review before saving.',429:'Provider rate limit reached. Wait before refreshing.'};
+        const error=new Error(result.code==='write_uncertain'?'Write completion is uncertain. Inspect the source before another edit.':messages[response.status]||'The protected source is unavailable. Please try again.');
+        error.status=response.status;error.code=result.code;throw error;
       }
       if (path === '/api/session' && result.user && (typeof result.user.displayName !== 'string' || typeof result.csrfToken !== 'string')) throw new Error('The session response is invalid.');
       if (path.startsWith('/api/records') && !Array.isArray(result.records) && options.method !== 'POST') throw new Error('The records response is invalid.');

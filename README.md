@@ -21,9 +21,9 @@ A design specification and its implementation are linked records with different 
 - Existing UI adapted from the private prototype, with embedded project content removed.
 - Empty by default: no demo dataset or fallback snapshot is shipped.
 - Generic room-entry debug simulator, isolated from the actual game.
-- Backend API client and contract, with HTTPS-only origin configuration and no browser-held provider tokens.
-- Authentication and Notion/GitHub provider adapters are **not implemented in this public frontend**. Project content cannot load until the protected backend is deployed and configured.
-- No automatic document migration, writeback, or game-repository modification is performed.
+- Implemented Node backend and API client, with GitHub App login, owner authorization, HTTPS-only origin configuration, and no browser-held provider tokens.
+- Authentication and Notion/GitHub adapters run in the separate backend. Project content cannot load until that backend is deployed and supplied with credentials and server-only source bindings.
+- Reviewed Notion changes write back to their configured page. GitHub file changes open a branch and pull request; the canonical branch is not automatically modified. No automatic content migration is performed.
 
 The private hosted prototype remains a separate deployment. This commit does not move its data or change its access policy.
 
@@ -52,8 +52,8 @@ GitHub Pages publishes the app files publicly. Confidential content must be retu
 
 ## Backend integration
 
-See [the backend contract](backend/README.md) and [the migration notes](docs/MIGRATION.md). Provider identifiers and credentials must be configured server-side outside Git. The browser is never allowed to pick arbitrary provider actions or private targets.
+See [the backend setup and implementation guide](backend/README.md) and [the migration notes](docs/MIGRATION.md). Provider identifiers and credentials must be configured server-side outside Git. The browser is never allowed to pick arbitrary provider actions or private targets.
 
 ## Verification
 
-`npm test` checks backend-origin validation, unauthorized access handling, path confinement, and safe API request behavior. `npm run audit:public` checks the source and generated artifact for forbidden private files, identifier patterns, credentials, and hardcoded document links. Auditing is a defense in depth measure and must accompany human review before adding source data or integrations.
+`npm test` checks OAuth state/PKCE, owner enforcement, secure cookies, CORS/CSRF, source permissions, conflict handling, write idempotency, provider adapters, and HTTP transport using mocked provider responses. Live credentials and hosted integration flows must be verified separately. `npm run audit:public` checks the source and generated artifact for forbidden private files, identifier patterns, credentials, and hardcoded document links. Auditing is a defense in depth measure and must accompany human review before adding source data or integrations.

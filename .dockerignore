@@ -1,0 +1,11 @@
+**/.env
+**/.env.*
+!**/.env.example
+.git
+node_modules
+dist
+private
+.snapshots
+.openai
+.sites-runtime
+.wrangler

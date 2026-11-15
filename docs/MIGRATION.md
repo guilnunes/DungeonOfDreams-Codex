@@ -14,10 +14,12 @@ Removed from this export:
 Retained and adapted:
 
 - Workspace layout, responsive styles, navigation, inspectors, comparison UI, and reusable interface components.
-- Source-neutral data projection types and runtime API calls.
+- Source-neutral data projection types and runtime API calls, backed by a separately deployable owner-authorized Node service.
 - A generic room-label simulator and copyable diagnostic overlay code. These do not modify the game.
 - Explicit setup/error states when a backend or source connection is unavailable.
 
 The public shell does not contain a substitute project database. The original private deployment and any previous workspace edits are retained separately; nothing is automatically migrated into Notion or GitHub by this export.
 
 The backend remains independent of Pages. Private source bindings and provider authorization must be configured at runtime on that backend, never passed as frontend build variables.
+
+The backend implementation now lives in `backend/`. Live operation still requires server-side GitHub App credentials, a Notion integration token, source bindings, and an HTTPS deployment. Provider secrets and actual binding values have not been committed.
