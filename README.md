@@ -11,18 +11,18 @@ A public application shell for a private, source-connected development workspace
 | Website source, UI styles, public data contracts | This repository |
 | Design documents, narrative, interview content, intended population rules | The configured Notion source |
 | Game code, runtime rules, actual asset files, implementation evidence | The configured game repository |
-| Sessions, authorization, provider credentials, source bindings, live reads and writes | A separately deployed protected backend |
+| Sessions, authorization, provider credentials, source bindings, live reads and writes | The co-hosted protected Node server |
 
 A design specification and its implementation are linked records with different roles. This UI must not silently merge their content or become another editable copy.
 
 ## Current status
 
-- Static React/Vite frontend, compatible with GitHub Pages project paths.
+- One Node service serves both the React/Vite frontend and the protected API on the same HTTPS origin.
 - Existing UI adapted from the private prototype, with embedded project content removed.
 - Empty by default: no demo dataset or fallback snapshot is shipped.
 - Generic room-entry debug simulator, isolated from the actual game.
 - Implemented Node backend and API client, with GitHub App login, owner authorization, HTTPS-only origin configuration, and no browser-held provider tokens.
-- Authentication and Notion/GitHub adapters run in the separate backend. Project content cannot load until that backend is deployed and supplied with credentials and server-only source bindings.
+- Authentication and Notion/GitHub adapters run in the co-hosted Node server. Project content cannot load until the app is deployed and supplied with credentials and server-only source bindings.
 - Reviewed Notion changes write back to their configured page. GitHub file changes open a branch and pull request; the canonical branch is not automatically modified. No automatic content migration is performed.
 
 The private hosted prototype remains a separate deployment. This commit does not move its data or change its access policy.
@@ -38,17 +38,21 @@ npm run build
 npm run dev
 ```
 
-Without backend configuration, the UI displays a connection-required state and makes no project-content requests. To connect a backend, copy `.env.example` to `.env.local` and set `VITE_CODEX_API_BASE_URL` to its HTTPS origin. This value is public and becomes part of the browser build; never place tokens or source IDs in it.
+For a complete local build, run `npm run build`, then configure the ignored `backend/.env` file and run `npm run backend` behind an HTTPS proxy. `npm run dev` previews the UI only; authentication is not bypassed for local development.
 
-## GitHub Pages
+## One-host deployment
 
-1. In repository settings, choose GitHub Actions as the Pages publishing source.
-2. Optionally set the repository variable `CODEX_API_BASE_URL` to the protected backend's HTTPS origin.
-3. Run the **Deploy public app shell** workflow manually.
+Use a single Render Free Web Service or another Node/Docker host. The server serves the built UI from `/`, browser assets from `dist/`, and protected endpoints from `/api/` and `/auth/`.
 
-The manual workflow builds, tests, and audits the artifact before deployment. It does not publish automatically when this source is committed. Relative asset paths allow the app to run beneath a project-repository URL.
+- `render.yaml` configures **one free web service**, not a separate static frontend service.
+- `backend/Dockerfile` builds the UI in one stage and copies only its public build plus the backend into the runtime image.
+- Render's assigned HTTPS URL becomes the app origin automatically. On another host or a custom domain, set server variable `CODEX_APP_ORIGIN` to the canonical HTTPS origin.
+- The browser automatically uses its own origin for API calls. No frontend environment settings, CORS allowlist for a second site, or third-party session cookies are needed.
+- GitHub remains the source repository and CI host. A separate GitHub Pages deployment is not used; its former deployment workflow was removed.
 
-GitHub Pages publishes the app files publicly. Confidential content must be returned only by the protected backend after authentication and authorization. A browser login screen is not an access-control boundary.
+Create the web service first and note its assigned URL. Register the GitHub App callback as that origin plus `/auth/callback`, add the server-only credentials and source bindings, and deploy. The service intentionally stays unready until the identity settings are supplied. Alternatively, use the Render Blueprint once those credentials are ready.
+
+Render Free still sleeps after idle time. Current in-memory sessions and idempotency state disappear on process restarts, so users must sign in again; co-hosting fixes cross-site cookie issues but does not make sessions durable. See the backend guide before using multiple instances or relying on restart-surviving sessions.
 
 ## Backend integration
 

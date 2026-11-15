@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: dungeon-of-dreams-codex
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: CODEX_OWNER_LOGIN
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: NOTION_TOKEN
+        sync: false
+      - key: CODEX_SOURCES_JSON
+        sync: false

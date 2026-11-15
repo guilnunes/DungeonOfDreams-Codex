@@ -14,3 +14,17 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - name: Build combined application image
+        run: docker build -f backend/Dockerfile -t codex-ci .
+      - name: Smoke-test one-host container
+        run: |
+          docker run --detach --name codex-ci -p 127.0.0.1:8787:8787 \
+            -e CODEX_APP_ORIGIN=https://example.com \
+            -e CODEX_OWNER_LOGIN=ci-owner \
+            -e GITHUB_CLIENT_ID=fixture-client \
+            -e GITHUB_CLIENT_SECRET=fixture-server-value codex-ci
+          trap 'docker rm -f codex-ci' EXIT
+          curl --retry 10 --retry-connrefused --retry-delay 1 --fail http://127.0.0.1:8787/health
+          curl --fail http://127.0.0.1:8787/ > /tmp/codex-shell.html
+          status=$(curl --silent --output /tmp/codex-api.json --write-out '%{http_code}' http://127.0.0.1:8787/api/records)
+          test "$status" = "401"

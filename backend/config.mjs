@@ -1,9 +1,12 @@
 const categories=new Set(['Gameplay','Room taxonomy','Character creation','Worldbuilding','Narrative','Art direction','Implementation','Decisions','Templates']);
 export function loadConfig(env=process.env){
- const required=['CODEX_BACKEND_ORIGIN','CODEX_FRONTEND_URL','CODEX_OWNER_LOGIN','GITHUB_CLIENT_ID','GITHUB_CLIENT_SECRET'];
+ const required=['CODEX_OWNER_LOGIN','GITHUB_CLIENT_ID','GITHUB_CLIENT_SECRET'];
  for(const k of required)if(!env[k]?.trim())throw Error(`Missing server setting: ${k}`);
  if(!/^[a-zA-Z0-9][a-zA-Z0-9-]{0,38}$/.test(env.CODEX_OWNER_LOGIN))throw Error('Invalid owner login.');
- const origin=new URL(env.CODEX_BACKEND_ORIGIN),frontend=new URL(env.CODEX_FRONTEND_URL);
+ const appOrigin=env.CODEX_APP_ORIGIN||env.CODEX_BACKEND_ORIGIN||env.RENDER_EXTERNAL_URL;
+ if(!appOrigin)throw Error('Missing server setting: CODEX_APP_ORIGIN');
+ const origin=new URL(appOrigin),frontend=new URL(env.CODEX_FRONTEND_URL||origin.origin+'/');
+ if(frontend.origin!==origin.origin)throw Error('Frontend and backend must share the same origin.');
  for(const u of [origin,frontend])if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash)throw Error('Public URLs must use HTTPS without credentials, query, or fragment.');
  if(origin.pathname!=='/')throw Error('Backend URL must be an origin.');
  let sources;try{sources=JSON.parse(env.CODEX_SOURCES_JSON||'[]')}catch{throw Error('CODEX_SOURCES_JSON must be valid JSON.')}
@@ -23,5 +26,5 @@ export function loadConfig(env=process.env){
  }
  for(const s of sources)if(s.assetId&&!sources.some(x=>x.id===s.assetId&&x.provider==='github'&&x.format==='asset'))throw Error('Asset links must reference a configured GitHub asset.');
  const hours=Number(env.CODEX_SESSION_HOURS||8);if(!Number.isFinite(hours)||hours<=0)throw Error('Invalid session lifetime.');
- return {origin:origin.origin,frontendUrl:frontend.href,frontendOrigin:frontend.origin,owner:env.CODEX_OWNER_LOGIN.toLowerCase(),clientId:env.GITHUB_CLIENT_ID,clientSecret:env.GITHUB_CLIENT_SECRET,notionToken:env.NOTION_TOKEN||'',sources,crossSite:env.CODEX_CROSS_SITE_COOKIES==='true',sessionMs:Math.min(hours,8)*3600000};
+ return {origin:origin.origin,frontendUrl:frontend.href,frontendOrigin:frontend.origin,owner:env.CODEX_OWNER_LOGIN.toLowerCase(),clientId:env.GITHUB_CLIENT_ID,clientSecret:env.GITHUB_CLIENT_SECRET,notionToken:env.NOTION_TOKEN||'',sources,crossSite:false,sessionMs:Math.min(hours,8)*3600000};
 }
