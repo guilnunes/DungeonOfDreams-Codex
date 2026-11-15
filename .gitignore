@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.log
+.sites-runtime/
+.wrangler/
+.openai/
+private/
+.snapshots/
+.DS_Store
